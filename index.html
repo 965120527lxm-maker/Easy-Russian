@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Latin → Cyrillic (Russian) Transliterator</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #020617;
+            color: #e5e7eb;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+        }
+
+        .container {
+            margin-top: 32px;
+            width: min(980px, 100vw - 32px);
+            padding: 24px 24px 32px;
+            background: radial-gradient(circle at top left, #111827, #020617 45%, #000 100%);
+            border-radius: 18px;
+            box-shadow: 0 22px 60px rgba(0, 0, 0, 0.65);
+            border: 1px solid #1f2937;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            margin: 0 0 6px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        h1 span.logo-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: #38bdf8;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.9);
+        }
+
+        .subtitle {
+            font-size: 0.9rem;
+            color: #9ca3af;
+            margin-bottom: 20px;
+        }
+
+        .subtitle code {
+            background: #111827;
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 12px 0 12px;
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+
+        .toolbar-mode {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(55, 65, 81, 0.9);
+        }
+
+        .toolbar-mode-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 999px;
+            background: #22c55e;
+            box-shadow: 0 0 10px rgba(34, 197, 94, 0.85);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            background: #1303f589;
+            color: white;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        button.secondary {
+            background: #020617;
+            color: #e5e7eb;
+            border: 1px solid #374151;
+        }
+
+        .mapping-toggle-btn {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+        }
+
+        button:hover {
+            filter: brightness(1.05);
+        }
+
+        .panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.8rem;
+            margin-bottom: 4px;
+            color: #9ca3af;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 160px;
+            resize: vertical;
+            border-radius: 12px;
+            border: 1px solid #374151;
+            background: rgba(15, 23, 42, 0.9);
+            color: #e5e7eb;
+            padding: 10px 12px;
+            font-size: 0.95rem;
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            box-sizing: border-box;
+        }
+
+        textarea:focus {
+            outline: 2px solid #38bdf8;
+            outline-offset: 1px;
+            border-color: transparent;
+        }
+
+        .textarea-readonly {
+            background: #020617;
+        }
+
+        .tips {
+            margin-top: 14px;
+            font-size: 0.78rem;
+            color: #9ca3af;
+            line-height: 1.5;
+        }
+
+        .tips ul {
+            margin: 6px 0 0;
+            padding-left: 18px;
+        }
+
+        .tips code {
+            background: #111827;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.78rem;
+        }
+
+        /* 映射表区域 */
+
+        .mapping-section {
+            margin-top: 28px;
+            padding-top: 18px;
+            border-top: 1px solid #1f2937;
+        }
+
+        .mapping-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 8px;
+        }
+
+        .mapping-header-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+        }
+
+        .mapping-header-sub {
+            font-size: 0.78rem;
+            color: #9ca3af;
+        }
+
+        .mapping-table-wrapper {
+            margin-top: 10px;
+            border-radius: 12px;
+            border: 1px solid #1f2937;
+            overflow: hidden;
+            background: rgba(15, 23, 42, 0.85);
+        }
+
+        table.mapping-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+        }
+
+        .mapping-table thead {
+            background: linear-gradient(135deg, #0f172a, #111827);
+        }
+
+        .mapping-table th,
+        .mapping-table td {
+            padding: 7px 10px;
+            text-align: left;
+        }
+
+        .mapping-table th {
+            font-weight: 500;
+            color: #e5e7eb;
+            border-bottom: 1px solid #1f2937;
+        }
+
+        .mapping-table tbody tr:nth-child(even) {
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .mapping-table tbody tr:nth-child(odd) {
+            background: rgba(15, 23, 42, 0.75);
+        }
+
+        .mapping-table tbody tr:hover {
+            background: #1f2937;
+        }
+
+        .mapping-type-tag {
+            display: inline-flex;
+            padding: 2px 8px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+        }
+
+        .tag-multi {
+            background: rgba(56, 189, 248, 0.1);
+            color: #38bdf8;
+            border: 1px solid rgba(56, 189, 248, 0.4);
+        }
+
+        .tag-single {
+            background: rgba(52, 211, 153, 0.08);
+            color: #4ade80;
+            border: 1px solid rgba(52, 211, 153, 0.35);
+        }
+
+        .mapping-code {
+            font-family: "JetBrains Mono", "Fira Code", monospace;
+            font-size: 0.8rem;
+            background: #020617;
+            padding: 2px 5px;
+            border-radius: 4px;
+        }
+
+        @media (max-width: 720px) {
+            .panels {
+                grid-template-columns: 1fr;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .buttons {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>
+            <span class="logo-dot"></span>
+            Latin → Cyrillic (Russian)
+        </h1>
+
+        <div class="toolbar">
+            <div class="toolbar-mode">
+                <span class="toolbar-mode-dot"></span>
+                <span>模式：<strong>Latin → Cyrillic</strong></span>
+            </div>
+            <div class="buttons">
+                <button id="btnCopy">复制结果</button>
+                <button id="btnClear" class="secondary">清空</button>
+            </div>
+        </div>
+
+        <div class="panels">
+            <div class="panel">
+                <label for="latinInput">输入（Latin / English letters）</label>
+                <textarea id="latinInput"
+                    placeholder="在这里输入：&#10;privet, kak dela? spasibo!&#10;\ya \yu \zh \ch ..."></textarea>
+            </div>
+            <div class="panel">
+                <label for="cyrOutput">输出（Cyrillic / 俄文）</label>
+                <textarea id="cyrOutput" class="textarea-readonly" readonly></textarea>
+            </div>
+        </div>
+
+
+        <!-- 映射表区域 -->
+        <section class="mapping-section">
+            <div class="mapping-header">
+                <div>
+                    <div class="mapping-header-title">映射表 · Mapping Table</div>
+                    <div class="mapping-header-sub">多字符组合优先（最长前缀匹配），下表右侧可直接对照。</div>
+                </div>
+                <button id="mappingToggle" class="secondary mapping-toggle-btn">Fold</button>
+            </div>
+
+            <div class="mapping-table-wrapper">
+                <table class="mapping-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 110px;">类型</th>
+                            <th style="width: 160px;">输入（Latin / Pattern）</th>
+                            <th style="width: 120px;">输出（Cyrillic）</th>
+                            <th>备注</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mappingTableBody">
+                        <!-- JS 渲染 -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // ======== 映射表定义 =========
+
+        // 多字母组合（键是不含 '\' 的核心部分，真正输入要写 '\'+键）
+        const latToCyrMulti = {
+            "sch": "щ",
+            "yo": "ё",
+            "zh": "ж",
+            "ts": "ц",
+            "ch": "ч",
+            "sh": "ш",
+            "yu": "ю",
+            "ya": "я",
+            "ei": "ы",
+            "ae": "э",
+            "\"": "ъ",
+            "'": "ь",
+            "uu": "й" // 你自定义的：\uu → й
+        };
+
+        // 单个字母映射（形近 / 音近）
+        const latToCyrSingle = {
+            "a": "а", //音近形近
+            "b": "б", //音近形近
+            "v": "в", //音近，形俄文区分于英文
+            "g": "г", //音近，但是形区分手写体д
+            "d": "д", //音近形近
+            "e": "е", //形近 
+            "z": "з", //音近
+            "u": "и", //形近
+            "k": "к", //音近形近
+            "l": "л", //音近形近
+            "m": "м", //音近形近
+            "n": "н", //音近
+            "o": "о", //音近形近
+            "p": "п", //音近
+            "r": "р", //音近
+            "c": "с", //形近
+            "t": "т", //音近形近
+            "y": "у", //形近
+            "f": "ф", //音近形近
+            "x": "х"  //形近
+        };
+
+        function isLatinLetter(ch) {
+            return /^[A-Za-z]$/.test(ch);
+        }
+
+        // 核心转换函数：Latin → Cyrillic（支持 \sch, \ya, \ei 等）
+        function latinToCyrillic(text) {
+            let result = "";
+            let i = 0;
+
+            while (i < text.length) {
+                const ch = text[i];
+
+                // 1. 反斜杠开头的多字符组合
+                if (ch === "\\") {
+                    i += 1; // 吃掉 '\'
+
+                    if (i >= text.length) {
+                        result += "\\";
+                        break;
+                    }
+
+                    const next = text[i];
+
+                    // 如果后面既不是字母也不是引号/撇号，就当普通字符处理
+                    if (!isLatinLetter(next) && next !== '"' && next !== "'") {
+                        result += "\\" + next;
+                        i += 1;
+                        continue;
+                    }
+
+                    let matched = false;
+                    const lens = [3, 2, 1]; // 最长前缀优先
+
+                    for (const L of lens) {
+                        if (i + L <= text.length) {
+                            const chunk = text.slice(i, i + L);
+                            const low = chunk.toLowerCase();
+
+                            if (latToCyrMulti.hasOwnProperty(low)) {
+                                let cyr = latToCyrMulti[low];
+
+                                // 保留首字母大写信息
+                                if (chunk[0] != "'" && chunk[0] != "\"" && chunk[0] === chunk[0].toUpperCase()) {
+                                    cyr = cyr[0].toUpperCase() + cyr.slice(1);
+                                }
+
+                                result += cyr;
+                                i += L;
+                                matched = true;
+                                break;
+                            }
+                        }
+                    }
+
+                    if (!matched) {
+                        // 没匹配成功：把 '\' 输出，然后退回一格，让下一个循环正常处理当前字符
+                        result += "\\";
+                    }
+
+                    continue;
+                }
+
+                // 2. 单字母映射
+                if (isLatinLetter(ch)) {
+                    const low = ch.toLowerCase();
+                    let matched = false;
+
+                    if (latToCyrSingle.hasOwnProperty(low)) {
+                        let cyr = latToCyrSingle[low];
+                        if (ch === ch.toUpperCase()) {
+                            cyr = cyr[0].toUpperCase() + cyr.slice(1);
+                        }
+                        result += cyr;
+                        matched = true;
+                    }
+
+                    if (!matched) {
+                        result += ch;
+                    }
+
+                    i += 1;
+                    continue;
+                }
+
+                // 3. 非字母：原样输出
+                result += ch;
+                i += 1;
+            }
+
+            return result;
+        }
+
+        // ======== 映射表渲染 =========
+        // ======== 映射规则（带设计哲学） =========
+
+        // 多字符规则：真正输入是 "\" + key
+        const MULTI_RULES = [
+            {
+                key: "sch",
+                out: "щ",
+                principles: ["形近-印刷体"],
+                note: "sch → щ，选 sch 为习惯拼法"
+            },
+            {
+                key: "yo",
+                out: "ё",
+                principles: ["音近-拼音", "音近-IPA"],
+                note: "yo 近于 [jo]，类似“哟”"
+            },
+            {
+                key: "zh",
+                out: "ж",
+                principles: ["音近-拼音", "形近-印刷体"],
+                note: "zh 类似拼音“zh”，对应 [ʐ]/[ʒ]"
+            },
+            {
+                key: "ts",
+                out: "ц",
+                principles: ["音近-拼音"],
+                note: "ts ≈ 拼音“c”，对应 [ts]"
+            },
+            {
+                key: "ch",
+                out: "ч",
+                principles: ["音近-拼音"],
+                note: "ch ≈ 拼音“q/ch”，对应 [tɕ]/[t͡ʃ]"
+            },
+            {
+                key: "sh",
+                out: "ш",
+                principles: ["音近-拼音"],
+                note: "sh ≈ 拼音“sh”，对应 [ʂ]/[ʃ]"
+            },
+            {
+                key: "yu",
+                out: "ю",
+                principles: ["音近-拼音"],
+                note: "yu ≈ “yu/ü”，如 ю [ju]"
+            },
+            {
+                key: "ya",
+                out: "я",
+                principles: ["音近-拼音"],
+                note: "ya ≈ “ya”，如 я [ja]"
+            },
+            {
+                key: "ei",
+                out: "ы",
+                principles: ["音近-拼音"],
+                note: "ei 近似拼音“yi”的反面，记忆辅助"
+            },
+            {
+                key: "ae",
+                out: "э",
+                principles: ["音近-IPA"],
+                note: "ae 对应 [e]，强调开口 e"
+            },
+            {
+                key: "\"",
+                out: "ъ",
+                principles: ["功能符号"],
+                note: "硬音符，用 \" 显式表示"
+            },
+            {
+                key: "'",
+                out: "ь",
+                principles: ["功能符号"],
+                note: "软音符，用 ' 显式表示"
+            },
+            {
+                key: "uu",
+                out: "й",
+                principles: ["形近-印刷体"],
+                note: "\\uu → й，自定义记忆规则"
+            }
+        ];
+
+        // 单字符规则
+        const SINGLE_RULES = [
+            {
+                key: "a",
+                out: "а",
+                principles: ["形近-印刷体", "音近-拼音"],
+                note: "a → а，a ≈ [a]"
+            },
+            {
+                key: "b",
+                out: "б",
+                principles: ["形近-印刷体", "音近-拼音"],
+                note: "b → б，b ≈ [b]"
+            },
+            {
+                key: "v",
+                out: "в",
+                principles: ["音近-拼音"],
+                note: "v ≈ [v]，接近俄文 в"
+            },
+            {
+                key: "g",
+                out: "г",
+                principles: ["音近-拼音"],
+                note: "g ≈ [g]"
+            },
+            {
+                key: "d",
+                out: "д",
+                principles: ["形近-印刷体", "音近-拼音"],
+                note: "d → д"
+            },
+            {
+                key: "e",
+                out: "е",
+                principles: ["形近-印刷体"],
+                note: "e → е，后续可配 ie 记发音"
+            },
+            {
+                key: "z",
+                out: "з",
+                principles: ["音近-拼音"],
+                note: "z ≈ [z]"
+            },
+            {
+                key: "u",
+                out: "и",
+                principles: ["形近-印刷体"],
+                note: "u 的形状接近 и，自定义规则"
+            },
+            {
+                key: "k",
+                out: "к",
+                principles: ["形近-印刷体"],
+                note: "k → к"
+            },
+            {
+                key: "l",
+                out: "л",
+                principles: ["音近-拼音"],
+                note: "l ≈ [l]"
+            },
+            {
+                key: "m",
+                out: "м",
+                principles: ["形近-印刷体"],
+                note: "m → м"
+            },
+            {
+                key: "n",
+                out: "н",
+                principles: ["音近-拼音"],
+                note: "n ≈ [n]"
+            },
+            {
+                key: "o",
+                out: "о",
+                principles: ["形近-印刷体", "音近-拼音"],
+                note: "o → о"
+            },
+            {
+                key: "p",
+                out: "п",
+                principles: ["音近-拼音"],
+                note: "p ≈ [p]"
+            },
+            {
+                key: "r",
+                out: "р",
+                principles: ["音近-拼音"],
+                note: "r 对应颤音 [r]"
+            },
+            {
+                key: "c",
+                out: "с",
+                principles: ["形近-印刷体"],
+                note: "c 形似 с，优先形近"
+            },
+            {
+                key: "t",
+                out: "т",
+                principles: ["形近-印刷体", "音近-拼音"],
+                note: "t → т"
+            },
+            {
+                key: "y",
+                out: "у",
+                principles: ["形近-印刷体"],
+                note: "y 形似 у，自定义规则"
+            },
+            {
+                key: "f",
+                out: "ф",
+                principles: ["音近-拼音"],
+                note: "f ≈ [f]"
+            },
+            {
+                key: "x",
+                out: "х",
+                principles: ["形近-印刷体"],
+                note: "x 形似 х，自定义规则"
+            }
+        ];
+
+        function renderMappingTable() {
+            const tbody = document.getElementById("mappingTableBody");
+            tbody.innerHTML = "";
+
+            const rows = [];
+
+            // 多字符组合
+            for (const rule of MULTI_RULES) {
+                rows.push({
+                    type: "multi",
+                    input: "\\" + rule.key,
+                    output: rule.out,
+                    principles: rule.principles,
+                    note: rule.note || ""
+                });
+            }
+
+            // 单字符
+            for (const rule of SINGLE_RULES) {
+                rows.push({
+                    type: "single",
+                    input: rule.key,
+                    output: rule.out,
+                    principles: rule.principles,
+                    note: rule.note || ""
+                });
+            }
+
+            // 多字符在前，再按输入排序
+            rows.sort((a, b) => {
+                if (a.type === b.type) return a.input.localeCompare(b.input);
+                return a.type === "multi" ? -1 : 1;
+            });
+
+            for (const row of rows) {
+                const tr = document.createElement("tr");
+
+                const tdType = document.createElement("td");
+                const tag = document.createElement("span");
+                tag.className =
+                    "mapping-type-tag " +
+                    (row.type === "multi" ? "tag-multi" : "tag-single");
+                tag.textContent = row.type === "multi" ? "多字符组合" : "单字符";
+                tdType.appendChild(tag);
+
+                const tdInput = document.createElement("td");
+                tdInput.innerHTML = `<span class="mapping-code">${row.input}</span>`;
+
+                const tdOutput = document.createElement("td");
+                tdOutput.innerHTML = `<span class="mapping-code">${row.output}</span>`;
+
+                const tdPrinciple = document.createElement("td");
+                tdPrinciple.style.fontSize = "0.75rem";
+                tdPrinciple.style.color = "#e5e7eb";
+                tdPrinciple.textContent = (row.principles || []).join(" · ");
+
+                const tdNote = document.createElement("td");
+                tdNote.textContent = row.note || "";
+                tdNote.style.fontSize = "0.75rem";
+                tdNote.style.color = "#9ca3af";
+
+                tr.appendChild(tdType);
+                tr.appendChild(tdInput);
+                tr.appendChild(tdOutput);
+                tr.appendChild(tdPrinciple);
+                tr.appendChild(tdNote);
+
+                tbody.appendChild(tr);
+            }
+        }
+
+
+        // ======== DOM 绑定 =========
+
+        const latinInput = document.getElementById("latinInput");
+        const cyrOutput = document.getElementById("cyrOutput");
+        const btnCopy = document.getElementById("btnCopy");
+        const btnClear = document.getElementById("btnClear");
+
+        latinInput.addEventListener("input", () => {
+            const text = latinInput.value;
+            cyrOutput.value = latinToCyrillic(text);
+        });
+
+        btnCopy.addEventListener("click", async () => {
+            const text = cyrOutput.value;
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                btnCopy.textContent = "已复制";
+                setTimeout(() => (btnCopy.textContent = "复制结果"), 900);
+            } catch (e) {
+                btnCopy.textContent = "复制失败";
+                setTimeout(() => (btnCopy.textContent = "复制结果"), 900);
+            }
+        });
+
+        btnClear.addEventListener("click", () => {
+            latinInput.value = "";
+            cyrOutput.value = "";
+            latinInput.focus();
+        });
+
+        renderMappingTable();
+        // 折叠映射表
+        const mappingToggle = document.getElementById("mappingToggle");
+        const mappingWrapper = document.querySelector(".mapping-table-wrapper");
+        let mappingCollapsed = false;
+
+        mappingToggle.addEventListener("click", () => {
+            mappingCollapsed = !mappingCollapsed;
+            if (mappingCollapsed) {
+                mappingWrapper.style.display = "none";
+                mappingToggle.textContent = "Unfold";
+            } else {
+                mappingWrapper.style.display = "";
+                mappingToggle.textContent = "Fold";
+            }
+        });
+    </script>
+</body>
+
+</html>
