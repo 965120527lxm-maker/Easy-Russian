@@ -45,4 +45,5 @@ git clone https://github.com/965120527lxm-maker/Easy-Russian.git
 cd Easy-Russian
 ```
 **2. Open the page**
+
 **3. Start typing**
