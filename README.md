@@ -37,14 +37,3 @@ Instead of switching keyboard layouts or memorizing where every Russian key is, 
     - Notes / mnemonics
 
 Everything is written in **plain HTML + CSS + JavaScript**. No backend, no build step.
-
----
-
-## Live Demo
-
-You can host this project as a static site using GitHub Pages.
-
-Typical URL (after enabling Pages on the repo):
-
-```text
-https://<your-username>.github.io/Easy-Russian/
