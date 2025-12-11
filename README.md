@@ -37,3 +37,12 @@ Instead of switching keyboard layouts or memorizing where every Russian key is, 
     - Notes / mnemonics
 
 Everything is written in **plain HTML + CSS + JavaScript**. No backend, no build step.
+
+## Quick start
+**1. Clone the repository**
+```bash
+git clone https://github.com/965120527lxm-maker/Easy-Russian.git
+cd Easy-Russian
+```
+**2. Open the page**
+**3. Start typing**
